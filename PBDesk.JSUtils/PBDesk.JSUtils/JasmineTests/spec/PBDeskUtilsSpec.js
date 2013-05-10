@@ -118,6 +118,10 @@ describe("PBDeskUtils Test", function () {
                 var str = "http//localhost:8080";
                 expect(PBDeskJS.StrUtils.IsValidUrl(str)).toBeTruthy();
             });
+            it("Number input Test", function () {
+                var str = 5;
+                expect(PBDeskJS.StrUtils.IsValidUrl(str)).toBeFalsy();
+            });
         });
 
         describe("IsValidEmail", function () {
