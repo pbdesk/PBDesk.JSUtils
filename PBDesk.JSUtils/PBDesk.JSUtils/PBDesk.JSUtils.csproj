@@ -70,6 +70,14 @@
     <Content Include="JasmineWithTypeScript\spec\PBDeskUtils.StrUtils.Spec.min.js">
       <DependentUpon>PBDeskUtils.StrUtils.Spec.ts</DependentUpon>
     </Content>
+    <Content Include="JasmineWithTypeScript\spec\PBDeskUtils.Utils.Spec.js">
+      <DependentUpon>PBDeskUtils.Utils.Spec.ts</DependentUpon>
+    </Content>
+    <Content Include="JasmineWithTypeScript\spec\PBDeskUtils.Utils.Spec.min.js">
+      <DependentUpon>PBDeskUtils.Utils.Spec.ts</DependentUpon>
+    </Content>
+    <TypeScriptCompile Include="JasmineWithTypeScript\spec\PBDeskUtils.Utils.Spec.ts" />
+    <Content Include="JasmineWithTypeScript\spec\SpecHelper.js" />
     <TypeScriptCompile Include="JasmineWithTypeScript\spec\PBDeskUtils.StrUtils.Spec.ts" />
     <TypeScriptCompile Include="JasmineWithTypeScript\DefinitelyTyped\jasmine.d.ts" />
     <Content Include="JasmineWithTypeScript\lib\jasmine-1.3.1\jasmine-html.js" />
