@@ -14,26 +14,59 @@ module PBDeskJS {
             return Math.floor(Math.random() * (to - from + 1) + from);
         }
 
+        static Clone(obj: any) {
+            // Handle the 3 simple types, and null or undefined
+            if (null == obj || "object" != typeof obj) return obj;
+
+            // Handle Date
+            if (obj instanceof Date) {
+                var copyDt = new Date();
+                copyDt.setTime(obj.getTime());
+                return copyDt;
+            }
+
+            // Handle Array
+            if (obj instanceof Array) {
+                var copyArr = [];
+                for (var i = 0, len = obj.length; i < len; i++) {
+                    copyArr[i] = Utils.Clone(obj[i]);
+                }
+                return copyArr;
+            }
+
+            // Handle Object
+            if (obj instanceof Object) {
+                var copyOb = {};
+                for (var attr in obj) {
+                    if (obj.hasOwnProperty(attr)) copyOb[attr] = Utils.Clone(obj[attr]);
+                }
+                return copyOb;
+            }
+
+            throw new Error("Unable to copy obj! Its type isn't supported.");
+        }
+        
+
     }
 
     export class StrUtils {
         
-        static StripHTML(originalStr: string, replacerStr?: string = ""): string {
+        static StripHTML(originalStr: string, replacerStr: string = ""): string {
             var regex = /<\S[^><]*>/g;
             return originalStr.replace(regex, replacerStr);
         }
 
-        static IsValidEmail(sText: string): bool {
+        static IsValidEmail(sText: string): boolean {
             var regexEmail = /^(?:\w+\.?)*\w+@(?:\w+\.)+\w+$/;
             return regexEmail.test(sText);
         }
 
-        static IsValidUrl(originalStr: string): bool {
+        static IsValidUrl(originalStr: string): boolean {
             var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
             return regexp.test(originalStr);
         }
 
-        static IsEmpty(text: string): bool {
+        static IsEmpty(text: string): boolean {
             var editorTextLength = text.replace(/\s+|\n+|\t+/g, "").length;
             return editorTextLength === 0;
         }
@@ -81,13 +114,14 @@ module PBDeskJS {
     }
 
     export class DOMUtils {
+
         static GetElementValue(eid: string): string {
             return document.getElementById(eid).textContent;
-        };
+        }
 
         static SetElementValue(eid, val) {
             document.getElementById(eid).textContent = val;
-        };
+        }
 
         static GetMetaContents(metaTagName: string) {
             var m = document.getElementsByTagName('meta');
@@ -102,7 +136,7 @@ module PBDeskJS {
                 }
             }
             return "";
-        };
+        }
     }
 
      export class CookieUtils {
@@ -131,7 +165,7 @@ module PBDeskJS {
         }
 
         static Erase(name: string) {
-            Create(name, "", -1);
+            CookieUtils.Create(name, "", -1);
         }
     }
 
