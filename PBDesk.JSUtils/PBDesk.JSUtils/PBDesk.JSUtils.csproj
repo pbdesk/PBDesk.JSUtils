@@ -63,10 +63,5 @@
       <DependentUpon>PBDeskUtils.js</DependentUpon>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="PBDeskUtils.min.js.map">
-      <DependentUpon>PBDeskUtils.js</DependentUpon>
-    </Content>
-  </ItemGroup>
   <Import Project="$(VSToolsPath)\TypeScript\Microsoft.TypeScript.targets" />
 </Project>
