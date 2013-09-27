@@ -58,10 +58,17 @@
     <TypeScriptCompile Include="PBDeskUtils.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="jasmine.tests\JasmineTestRunner.js" />
     <Content Include="jasmine.tests\lib\jasmine-1.3.1\jasmine-html.js" />
     <Content Include="jasmine.tests\lib\jasmine-1.3.1\jasmine.css" />
     <Content Include="jasmine.tests\lib\jasmine-1.3.1\jasmine.js" />
+    <Content Include="jasmine.tests\SpecRunnerForPBDeskUtils.min.js.html" />
+    <Content Include="jasmine.tests\SpecRunnerForPBDeskUtils.js.html" />
     <Content Include="jasmine.tests\SpecRunner.html" />
+    <Content Include="jasmine.tests\spec\PBDeskJS.DOMUtils.Spec.js" />
+    <Content Include="jasmine.tests\spec\PBDeskJS.CookieUtils.Spec.js" />
+    <Content Include="jasmine.tests\spec\PBDeskJS.StrUtils.Spec.js" />
+    <Content Include="jasmine.tests\spec\PBDeskJS.Utils.Spec.js" />
     <Content Include="jasmine.tests\spec\PlayerSpec.js" />
     <Content Include="jasmine.tests\spec\SpecHelper.js" />
     <Content Include="jasmine.tests\src\Player.js" />
@@ -73,6 +80,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="jasmine.tests\lib\jasmine-1.3.1\MIT.LICENSE" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="web.config" />
+    <None Include="web.Debug.config">
+      <DependentUpon>web.config</DependentUpon>
+    </None>
+    <None Include="web.Release.config">
+      <DependentUpon>web.config</DependentUpon>
+    </None>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TypeScript\Microsoft.TypeScript.targets" />
 </Project>
