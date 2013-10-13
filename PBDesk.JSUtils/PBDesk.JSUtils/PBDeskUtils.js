@@ -320,5 +320,35 @@ var PBDeskJS;
         return CookieUtils;
     })();
     PBDeskJS.CookieUtils = CookieUtils;
+
+    var Logger = (function () {
+        function Logger() {
+        }
+        Logger.Log = function (message) {
+            if (window && window.console && window.console.log) {
+                window.console.log(message);
+            }
+        };
+
+        Logger.Warn = function (message) {
+            if (window && window.console && window.console.warn) {
+                window.console.warn(message);
+            }
+        };
+
+        Logger.Info = function (message) {
+            if (window && window.console && window.console.info) {
+                window.console.info(message);
+            }
+        };
+
+        Logger.Error = function (message) {
+            if (window && window.console && window.console.error) {
+                window.console.error(message);
+            }
+        };
+        return Logger;
+    })();
+    PBDeskJS.Logger = Logger;
 })(PBDeskJS || (PBDeskJS = {}));
 //# sourceMappingURL=PBDeskUtils.js.map

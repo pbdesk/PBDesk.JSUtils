@@ -338,5 +338,32 @@ module PBDeskJS {
         }
     }
 
+    export class Logger {
+
+        static Log(message: string) {
+            if (window && window.console && window.console.log) {
+                window.console.log(message);
+            }
+        }
+
+        static Warn(message: string) {
+            if (window && window.console && window.console.warn) {
+                window.console.warn(message);
+            }
+        }
+
+        static Info(message: string) {
+            if (window && window.console && window.console.info) {
+                window.console.info(message);
+            }
+        }
+
+        static Error(message: string) {
+            if (window && window.console && window.console.error) {
+                window.console.error(message);
+            }
+        }
+    }
+
 }
 
