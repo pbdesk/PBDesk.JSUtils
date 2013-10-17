@@ -1,30 +1,31 @@
-var PBDeskJS;
-(function (PBDeskJS) {
-    var Utils = (function () {
-        function Utils() {
-        }
-        Utils.InjectScript = function (url) {
+module PBDeskJS {
+        
+    export class Utils {
+
+        static InjectScript(url: string) {
             var head = document.getElementsByTagName('head')[0];
             var script = document.createElement('script');
             script.setAttribute("type", "text/javascript");
             script.setAttribute("src", url);
             head.appendChild(script);
-        };
+        }
 
-        Utils.Random = function (to, from) {
+        static Random(to: number, from: number): number {
             return Math.floor(Math.random() * (to - from + 1) + from);
-        };
+        }
 
-        Utils.Clone = function (obj) {
-            if (null == obj || "object" != typeof obj)
-                return obj;
+        static Clone(obj: any) {
+            // Handle the 3 simple types, and null or undefined
+            if (null == obj || "object" != typeof obj) return obj;
 
+            // Handle Date
             if (obj instanceof Date) {
                 var copyDt = new Date();
                 copyDt.setTime(obj.getTime());
                 return copyDt;
             }
 
+            // Handle Array
             if (obj instanceof Array) {
                 var copyArr = [];
                 for (var i = 0, len = obj.length; i < len; i++) {
@@ -33,36 +34,49 @@ var PBDeskJS;
                 return copyArr;
             }
 
+            // Handle Object
             if (obj instanceof Object) {
                 var copyOb = {};
                 for (var attr in obj) {
-                    if (obj.hasOwnProperty(attr))
-                        copyOb[attr] = Utils.Clone(obj[attr]);
+                    if (obj.hasOwnProperty(attr)) copyOb[attr] = Utils.Clone(obj[attr]);
                 }
                 return copyOb;
             }
 
             throw new Error("Unable to copy obj! Its type isn't supported.");
-        };
-
-        Utils.DeepCompare = function () {
+        }
+        
+        static DeepCompare() {
             var leftChain, rightChain;
 
             function compare2Objects(x, y) {
                 var p;
 
+                // remember that NaN === NaN returns false
+                // and isNaN(undefined) returns true
                 if (isNaN(x) && isNaN(y) && typeof x === 'number' && typeof y === 'number') {
                     return true;
                 }
 
+                // Compare primitives and functions.     
+                // Check if both arguments link to the same object.
+                // Especially useful on step when comparing prototypes
                 if (x === y) {
                     return true;
                 }
 
-                if ((typeof x === 'function' && typeof y === 'function') || (x instanceof Date && y instanceof Date) || (x instanceof RegExp && y instanceof RegExp) || (x instanceof String && y instanceof String) || (x instanceof Number && y instanceof Number)) {
+                // Works in case when functions are created in constructor.
+                // Comparing dates is a common scenario. Another built-ins?
+                // We can even handle functions passed across iframes
+                if ((typeof x === 'function' && typeof y === 'function') ||
+                    (x instanceof Date && y instanceof Date) ||
+                    (x instanceof RegExp && y instanceof RegExp) ||
+                    (x instanceof String && y instanceof String) ||
+                    (x instanceof Number && y instanceof Number)) {
                     return x.toString() === y.toString();
                 }
 
+                // At last checking prototypes as good a we can
                 if (!(x instanceof Object && y instanceof Object)) {
                     return false;
                 }
@@ -79,14 +93,18 @@ var PBDeskJS;
                     return false;
                 }
 
+                // check for infinitive linking loops
                 if (leftChain.indexOf(x) > -1 || rightChain.indexOf(y) > -1) {
                     return false;
                 }
 
+                // Quick checking of one object beeing a subset of another.
+                // todo: cache the structure of arguments[0] for performance
                 for (p in y) {
                     if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
                         return false;
-                    } else if (typeof y[p] !== typeof x[p]) {
+                    }
+                    else if (typeof y[p] !== typeof x[p]) {
                         return false;
                     }
                 }
@@ -94,13 +112,15 @@ var PBDeskJS;
                 for (p in x) {
                     if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
                         return false;
-                    } else if (typeof y[p] !== typeof x[p]) {
+                    }
+                    else if (typeof y[p] !== typeof x[p]) {
                         return false;
                     }
 
                     switch (typeof (x[p])) {
                         case 'object':
                         case 'function':
+
                             leftChain.push(x);
                             rightChain.push(y);
 
@@ -124,11 +144,13 @@ var PBDeskJS;
             }
 
             if (arguments.length < 1) {
-                return true;
+                return true; //Die silently? Don't know how to handle such case, please help...
+                // throw "Need two or more arguments to compare";
             }
 
             for (var i = 1, l = arguments.length; i < l; i++) {
-                leftChain = [];
+
+                leftChain = []; //todo: this can be cached
                 rightChain = [];
 
                 if (!compare2Objects(arguments[0], arguments[i])) {
@@ -137,41 +159,44 @@ var PBDeskJS;
             }
 
             return true;
-        };
+        }
 
-        Utils.ResolveReferences = function (json) {
+        static ResolveReferences(json) {
             if (typeof json === 'string')
                 json = JSON.parse(json);
 
-            var byid = {}, refs = [];
+            var byid = {}, // all objects by id
+                refs = []; // references to objects that could not be resolved
 
             function recurse(obj, prop, parent) {
-                if (typeof obj !== 'object' || !obj) {
+                if (typeof obj !== 'object' || !obj) { // a primitive value
                     return obj;
                 }
                 if (Object.prototype.toString.call(obj) === '[object Array]') {
                     for (var i = 0; i < obj.length; i++)
                         if ("$ref" in obj[i]) {
                             obj[i] = recurse(obj[i], i, obj);
-                        } else {
+                        }
+                        else {
                             obj[i] = recurse(obj[i], prop, obj);
                         }
                     return obj;
                 }
-                if ("$ref" in obj) {
+                if ("$ref" in obj) { // a reference
                     var ref = obj.$ref;
                     if (ref in byid) {
                         return byid[ref];
                     }
-
+                    // else we have to make it lazy:
                     refs.push([parent, prop, ref]);
                     return;
                 } else if ("$id" in obj) {
                     var id = obj.$id;
                     delete obj.$id;
-                    if ("$values" in obj) {
+                    if ("$values" in obj) { // an array
                         obj = obj.$values.map(recurse);
-                    } else {
+                    }
+                    else { // a plain object
                         for (var prop in obj) {
                             obj[prop] = recurse(obj[prop], prop, obj);
                         }
@@ -181,110 +206,111 @@ var PBDeskJS;
                 return obj;
             }
 
-            json = recurse(json, null, null);
+            json = recurse(json, null, null); // run it!
 
-            for (var i = 0; i < refs.length; i++) {
+            for (var i = 0; i < refs.length; i++) { // resolve previously unknown references
                 var ref = refs[i];
                 ref[0][ref[1]] = byid[ref[2]];
+                // Notice that this throws if you put in a reference at top-level
             }
             return json;
-        };
-        return Utils;
-    })();
-    PBDeskJS.Utils = Utils;
-
-    var StrUtils = (function () {
-        function StrUtils() {
         }
-        StrUtils.StripHTML = function (originalStr, replacerStr) {
-            if (typeof replacerStr === "undefined") { replacerStr = ""; }
+
+    }
+
+    export class StrUtils {
+        
+        static StripHTML(originalStr: string, replacerStr: string = ""): string {
             var regex = /<\S[^><]*>/g;
             return originalStr.replace(regex, replacerStr);
-        };
+        }
 
-        StrUtils.IsValidEmail = function (sText) {
+        static IsValidEmail(sText: string): boolean {
             var regexEmail = /^(?:\w+\.?)*\w+@(?:\w+\.)+\w+$/;
             return regexEmail.test(sText);
-        };
+        }
 
-        StrUtils.IsValidUrl = function (originalStr) {
-            var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+        static IsValidUrl(originalStr: string): boolean {
+            var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
             return regexp.test(originalStr);
-        };
+        }
 
-        StrUtils.IsEmpty = function (text) {
+        static IsEmpty(text: string): boolean {
             var editorTextLength = text.replace(/\s+|\n+|\t+/g, "").length;
             return editorTextLength === 0;
-        };
+        }
 
-        StrUtils.StripHTMLAndTrim = function (text) {
+        static StripHTMLAndTrim(text: string): string {
             var htmlStriper = /<(?:.|\s)*?>/g;
             text = text.replace(htmlStriper, " ");
             while (text.indexOf("  ") >= 0) {
                 text = text.replace("  ", " ");
             }
             return text.replace(/^\s+|\s+$/g, "");
-        };
+        }
 
-        StrUtils.Trim = function (text) {
+        static Trim(text: string): string {
             return text.replace(/^\s+|\s+$/g, "");
-        };
+        }
 
-        StrUtils.LTrim = function (text) {
+        static LTrim(text: string): string {
             return text.replace(/^\s+/, "");
-        };
+        }
 
-        StrUtils.RTrim = function (text) {
+        static RTrim(text: string): string {
             return text.replace(/\s+$/, "");
-        };
+        }
 
-        StrUtils.Format = function (text) {
+        static Format(text: string): string {
+            //check if there are two arguments in the arguments list
             if (arguments.length <= 1) {
+                //if there are not 2 or more arguments there's nothing to replace
+                //just return the original text
                 return text;
             }
 
+            //decrement to move to the second argument in the array
             var tokenCount = arguments.length - 2;
             for (var token = 0; token <= tokenCount; token++) {
-                text = text.replace(new RegExp("\\{" + token + "\\}", "gi"), arguments[token + 1]);
+                //iterate through the tokens and replace their placeholders from the original text in order
+                text = text.replace(new RegExp("\\{" + token + "\\}", "gi"),
+                                                        arguments[token + 1]);
             }
             return text;
-        };
-        return StrUtils;
-    })();
-    PBDeskJS.StrUtils = StrUtils;
-
-    var DOMUtils = (function () {
-        function DOMUtils() {
         }
-        DOMUtils.GetElementValue = function (eid) {
+        
+
+    }
+
+    export class DOMUtils {
+
+        static GetElementValue(eid: string): string {
             return document.getElementById(eid).textContent;
-        };
+        }
 
-        DOMUtils.SetElementValue = function (eid, val) {
+        static SetElementValue(eid, val) {
             document.getElementById(eid).textContent = val;
-        };
+        }
 
-        DOMUtils.GetMetaContents = function (metaTagName) {
+        static GetMetaContents(metaTagName: string) {
             var m = document.getElementsByTagName('meta');
             for (var i in m) {
-                try  {
+                try {
                     if (m[i].name.toLowerCase() === metaTagName.toLowerCase()) {
                         return m[i].content;
                     }
-                } catch (Error) {
+                }
+                catch (Error) {
                     continue;
                 }
             }
             return "";
-        };
-        return DOMUtils;
-    })();
-    PBDeskJS.DOMUtils = DOMUtils;
-
-    var CookieUtils = (function () {
-        function CookieUtils() {
         }
-        CookieUtils.Read = function (name) {
+    }
+
+     export class CookieUtils {
+        
+        static Read(name: string) {
             var nameEQ = name + "=";
             var ca = document.cookie.split(';');
             for (var i = 0; i < ca.length; i++) {
@@ -295,52 +321,49 @@ var PBDeskJS;
                     return c.substring(nameEQ.length, c.length);
             }
             return null;
-        };
+        }
 
-        CookieUtils.Create = function (name, value, days) {
+        static Create(name: string, value: any, days: number) {
             var expires = "";
             if (days) {
                 var date = new Date();
                 date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
                 expires = "; expires=" + date.toUTCString();
-            }
+            }            
             document.cookie = name + "=" + value + expires + "; path=/";
-        };
-
-        CookieUtils.Erase = function (name) {
-            CookieUtils.Create(name, "", -1);
-        };
-        return CookieUtils;
-    })();
-    PBDeskJS.CookieUtils = CookieUtils;
-
-    var Logger = (function () {
-        function Logger() {
         }
-        Logger.Log = function (message) {
+
+        static Erase(name: string) {
+            CookieUtils.Create(name, "", -1);
+        }
+    }
+
+    export class Logger {
+
+        static Log(message: string) {
             if (window && window.console && window.console.log) {
                 window.console.log(message);
             }
-        };
+        }
 
-        Logger.Warn = function (message) {
+        static Warn(message: string) {
             if (window && window.console && window.console.warn) {
                 window.console.warn(message);
             }
-        };
+        }
 
-        Logger.Info = function (message) {
+        static Info(message: string) {
             if (window && window.console && window.console.info) {
                 window.console.info(message);
             }
-        };
+        }
 
-        Logger.Error = function (message) {
+        static Error(message: string) {
             if (window && window.console && window.console.error) {
                 window.console.error(message);
             }
-        };
-        return Logger;
-    })();
-    PBDeskJS.Logger = Logger;
-})(PBDeskJS || (PBDeskJS = {}));
+        }
+    }
+
+}
+
