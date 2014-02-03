@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build;Nuget;CleanEnd" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ArtifactsPath>$(MSBuildProjectDirectory)\Artifacts</ArtifactsPath>    
+    <ProjectName>PBDesk.Utils</ProjectName>
+    <BuildRevision>0</BuildRevision>
+    <BuildYear>$([System.DateTime]::Now.Year.ToString())</BuildYear>
+    <BuildMonth>$([System.DateTime]::Now.Month.ToString())</BuildMonth>
+    <BuildDate>$([System.DateTime]::Now.Day.ToString())</BuildDate>
+    <BuildVersion>$(BuildYear).$(BuildMonth).$(BuildDate).$(BuildRevision)</BuildVersion>
+    <PackageFolder>$(ProjectName).$(BuildVersion)</PackageFolder>
+    <MSBuildExtensionPack>$(MSBuildProjectDirectory)\MSBuild.ExtensionPack.4.0.8.0</MSBuildExtensionPack>
+  </PropertyGroup>
+      
+  
+    
+  <Import Project="$(MSBuildExtensionPack)\MSBuild.ExtensionPack.tasks"/>
+    
+  <Target Name="Build" DependsOnTargets="SetVersion" >
+    <Message Text="$(MSBuildProjectDirectory)" />
+     <MSBuild Projects="..\PBDesk.Utils\PBDesk.Utils.csproj"
+        Properties="Configuration=Release;OutputPath=$(ArtifactsPath)\net451\;IntermediateOutputPath=obj\Release\net451\;TargetFrameworkVersion=v4.5.1" />
+    <MSBuild Projects="..\PBDesk.Utils\PBDesk.Utils.csproj"
+        Properties="Configuration=Release;OutputPath=$(ArtifactsPath)\net45\;IntermediateOutputPath=obj\Release\net45\;TargetFrameworkVersion=v4.5" />
+    <MSBuild Projects="..\PBDesk.Utils\PBDesk.Utils.csproj"
+        Properties="Configuration=Release;OutputPath=$(ArtifactsPath)\net40\;IntermediateOutputPath=obj\Release\net40\;TargetFrameworkVersion=v4.0" />
+    <!--  <MSBuild Projects="..\PBDesk.Utils\PBDesk.Utils.csproj"
+        Properties="Configuration=Release;OutputPath=$(ArtifactsPath)\net35\;IntermediateOutputPath=obj\Release\net35\;TargetFrameworkVersion=v3.5" />-->
+  </Target>
+  
+  <Target Name="Nuget">
+    
+    <ItemGroup>
+    <ArtifactsFiles Include="$(ArtifactsPath)\**\*.*" />
+  </ItemGroup>
+  
+    <!--<MakeDir  Directories="$(PackageFolder)"/>
+    <MakeDir  Directories="$(PackageFolder)\lib"/>
+    <MakeDir  Directories="$(PackageFolder)\lib\net451"/>
+    <MakeDir  Directories="$(PackageFolder)\lib\net45"/>
+    <MakeDir  Directories="$(PackageFolder)\lib\net40"/>-->
+    <!--<Copy
+            SourceFiles="@(ArtifactsFiles)"
+            DestinationFiles="@(ArtifactsFiles->'$(PackageFolder)\lib\%(RecursiveDir)%(Filename)%(Extension)')"
+    />-->
+    
+    <Copy SourceFiles="@(ArtifactsFiles)" DestinationFolder="$(PackageFolder)\lib\%(RecursiveDir)" />
+
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\PBDesk.Utils.nuspec" DestinationFiles="$(PackageFolder)\PBDesk.Utils.$(BuildVersion).nuspec" />
+
+    <ItemGroup>
+      <namespaces Include="MyNamespace">
+        <Prefix>DefaultNS</Prefix>
+        <Uri>http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd</Uri>
+      </namespaces>
+    </ItemGroup>
+
+   
+    <MSBuild.ExtensionPack.Xml.XmlFile TaskAction="UpdateElement" 
+                                       Namespaces="@(namespaces)"
+                                       File="$(PackageFolder)\PBDesk.Utils.$(BuildVersion).nuspec" 
+                                       XPath="/DefaultNS:package/DefaultNS:metadata/DefaultNS:version" 
+                                       InnerText="$(BuildVersion)"/>
+    
+
+
+  <Exec WorkingDirectory="$(PackageFolder)" 
+          Command="$(MSBuildProjectDirectory)\..\.nuget\nuget.exe pack PBDesk.Utils.$(BuildVersion).nuspec" />
+
+  </Target>
+  
+  <Target Name="SetVersion">
+    <ItemGroup>
+      <AssemblyInfoFiles Include="$(MSBuildProjectDirectory)\..\PBDesk.Utils\**\AssemblyInfo.cs" />
+    </ItemGroup>
+  
+    <Message Text="SetVersions Called" />
+    <Message Text="@(AssemblyInfoFiles)" />
+    <MSBuild.ExtensionPack.Framework.AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)"
+                AssemblyFileMajorVersion="$(BuildYear)"
+                AssemblyFileMinorVersion="$(BuildMonth)" 
+                AssemblyFileBuildNumber="$(BuildDate)"
+                AssemblyFileRevision="$(BuildRevision)"
+                AssemblyMajorVersion="$(BuildYear)"       
+                AssemblyMinorVersion="$(BuildMonth)"
+                AssemblyBuildNumber="$(BuildDate)"
+                AssemblyRevision="$(BuildRevision)"      
+              />
+  </Target>
+    
+  <Target Name="Clean">
+    <Message Text="CleanStart" />
+    <RemoveDir Directories="$(ArtifactsPath)\" Condition="Exists($(ArtifactsPath))" />
+    <RemoveDir Directories="$(PackageFolder)" Condition="Exists($(PackageFolder))" />
+  </Target>
+  <Target Name="CleanEnd">
+    <Message Text="CleanEnd" />
+    <RemoveDir Directories="$(ArtifactsPath)" Condition="Exists($(ArtifactsPath))" />
+  </Target>
+</Project>
+
