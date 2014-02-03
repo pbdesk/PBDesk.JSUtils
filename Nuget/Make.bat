@@ -1,1 +1,1 @@
-msbuild PBDesk.Utils.MSBuild  /p:BuildRevision=1
+msbuild PBDesk.JSUtils.MSBuild  /p:BuildRevision=1
