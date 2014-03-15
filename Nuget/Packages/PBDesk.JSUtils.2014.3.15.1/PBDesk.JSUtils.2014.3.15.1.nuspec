@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>PBDesk.JSUtils</id>
+    <version>2014.3.15.1</version>
+    <title>PBDesk.JSUtils</title>
+    <authors>Pinal Bhatt[PBDesk.com]</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>PBDesk.JSUtils - Javascript Utilities</description>
+    <summary>PBDesk.JSUtils - Javascript Utilities</summary>
+    <releaseNotes>PBDesk.JSUtils - Javascript Utilities - 2014.3.15.1</releaseNotes>
+  </metadata>
+  <files>
+    <file src="content\Scripts\PBDeskUtils.js" target="content\Scripts\PBDeskUtils.js" />
+    <file src="content\Scripts\PBDeskUtils.min.js" target="content\Scripts\PBDeskUtils.min.js" />
+    <file src="content\Scripts\PBDeskUtils.ts" target="content\Scripts\PBDeskUtils.ts" />
+  </files>
+</package>
