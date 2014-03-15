@@ -284,4 +284,16 @@ describe("PBDeskJS.Utils", function () {
         });
     });
 
+    describe("GetQueryStringValue() Method", function () {
+
+        it("Invalid Query String Parameter", function () {
+            var result = PBDeskJS.Utils.GetQueryStringValue("test");
+            expect(result).toEqual("");
+        });
+        it("Valid Query String Parameter", function () {
+            var result = PBDeskJS.Utils.GetQueryStringValue("p");
+            expect(result).toEqual("success");
+        });
+    });
+
 });
