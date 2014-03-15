@@ -14,6 +14,13 @@ module PBDeskJS {
             return Math.floor(Math.random() * (to - from + 1) + from);
         }
 
+        static GetQueryStringValue(parameterName: string): string {
+            parameterName = parameterName.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + parameterName + "=([^&#]*)");
+            var results = regex.exec(location.search);
+            return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        } 
+
         static Clone(obj: any) {
             // Handle the 3 simple types, and null or undefined
             if (null == obj || "object" != typeof obj) return obj;

@@ -15,16 +15,26 @@ var PBDeskJS;
             return Math.floor(Math.random() * (to - from + 1) + from);
         };
 
+        Utils.GetQueryStringValue = function (parameterName) {
+            parameterName = parameterName.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + parameterName + "=([^&#]*)");
+            var results = regex.exec(location.search);
+            return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        };
+
         Utils.Clone = function (obj) {
+            // Handle the 3 simple types, and null or undefined
             if (null == obj || "object" != typeof obj)
                 return obj;
 
+            // Handle Date
             if (obj instanceof Date) {
                 var copyDt = new Date();
                 copyDt.setTime(obj.getTime());
                 return copyDt;
             }
 
+            // Handle Array
             if (obj instanceof Array) {
                 var copyArr = [];
                 for (var i = 0, len = obj.length; i < len; i++) {
@@ -33,6 +43,7 @@ var PBDeskJS;
                 return copyArr;
             }
 
+            // Handle Object
             if (obj instanceof Object) {
                 var copyOb = {};
                 for (var attr in obj) {
@@ -51,18 +62,27 @@ var PBDeskJS;
             function compare2Objects(x, y) {
                 var p;
 
+                // remember that NaN === NaN returns false
+                // and isNaN(undefined) returns true
                 if (isNaN(x) && isNaN(y) && typeof x === 'number' && typeof y === 'number') {
                     return true;
                 }
 
+                // Compare primitives and functions.
+                // Check if both arguments link to the same object.
+                // Especially useful on step when comparing prototypes
                 if (x === y) {
                     return true;
                 }
 
+                // Works in case when functions are created in constructor.
+                // Comparing dates is a common scenario. Another built-ins?
+                // We can even handle functions passed across iframes
                 if ((typeof x === 'function' && typeof y === 'function') || (x instanceof Date && y instanceof Date) || (x instanceof RegExp && y instanceof RegExp) || (x instanceof String && y instanceof String) || (x instanceof Number && y instanceof Number)) {
                     return x.toString() === y.toString();
                 }
 
+                // At last checking prototypes as good a we can
                 if (!(x instanceof Object && y instanceof Object)) {
                     return false;
                 }
@@ -79,6 +99,7 @@ var PBDeskJS;
                     return false;
                 }
 
+                // check for infinitive linking loops
                 if (leftChain.indexOf(x) > -1 || rightChain.indexOf(y) > -1) {
                     return false;
                 }
@@ -125,10 +146,11 @@ var PBDeskJS;
 
             if (arguments.length < 1) {
                 return true;
+                // throw "Need two or more arguments to compare";
             }
 
             for (var i = 1, l = arguments.length; i < l; i++) {
-                leftChain = [];
+                leftChain = []; //todo: this can be cached
                 rightChain = [];
 
                 if (!compare2Objects(arguments[0], arguments[i])) {
@@ -164,6 +186,7 @@ var PBDeskJS;
                         return byid[ref];
                     }
 
+                    // else we have to make it lazy:
                     refs.push([parent, prop, ref]);
                     return;
                 } else if ("$id" in obj) {
@@ -181,11 +204,12 @@ var PBDeskJS;
                 return obj;
             }
 
-            json = recurse(json, null, null);
+            json = recurse(json, null, null); // run it!
 
             for (var i = 0; i < refs.length; i++) {
                 var ref = refs[i];
                 ref[0][ref[1]] = byid[ref[2]];
+                // Notice that this throws if you put in a reference at top-level
             }
             return json;
         };
@@ -239,12 +263,17 @@ var PBDeskJS;
         };
 
         StrUtils.Format = function (text) {
+            //check if there are two arguments in the arguments list
             if (arguments.length <= 1) {
+                //if there are not 2 or more arguments there's nothing to replace
+                //just return the original text
                 return text;
             }
 
+            //decrement to move to the second argument in the array
             var tokenCount = arguments.length - 2;
             for (var token = 0; token <= tokenCount; token++) {
+                //iterate through the tokens and replace their placeholders from the original text in order
                 text = text.replace(new RegExp("\\{" + token + "\\}", "gi"), arguments[token + 1]);
             }
             return text;
@@ -344,3 +373,4 @@ var PBDeskJS;
     })();
     PBDeskJS.Logger = Logger;
 })(PBDeskJS || (PBDeskJS = {}));
+//# sourceMappingURL=PBDeskUtils.js.map
